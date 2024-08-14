@@ -1,7 +1,8 @@
-from setting import *
-from src import *
 import time
 import sys
+import numpy as np
+from setting import *
+from src import *
 from dataprocess.findThebest import getDirsname
 
 def main():
@@ -38,7 +39,7 @@ def main():
 
         crossPop = ga.crossover.crossover(parentPop)
 
-        population = selectPop + crossPop
+        population = np.vstack((selectPop , crossPop), dtype=int)
 
         population = ga.mutation.mutation(population)
 
@@ -59,12 +60,14 @@ def main():
 
     add_mcop,job_finished_time = ga.decoding.decode(bestChromosome['OS'], bestChromosome['MS'])
 
-    bestChromosome['machine_operation'] = add_mcop
+    # bestChromosome['machine_operation'] = add_mcop
     data = ga.decoding.translateDecode2Gantt(add_mcop)
 
     utils.chart.drawChart(data, recordForm)
     serial_number = paths.num_exp.zfill(2)
     if testing.recordWrite:
+        bestChromosome['OS'] = bestChromosome['OS'].tolist()
+        bestChromosome['MS'] = bestChromosome['MS'].tolist()
         ga.keep.record2json(bestChromosome, paths.result_origin_path + f'recordbest/bestchromosome/bestchromosome_{serial_number}.json')
         ga.keep.record2json(recordForm, paths.result_origin_path + f'recordbest/bestrecord/bestrecord_{serial_number}.json')
     
@@ -128,12 +131,14 @@ def insert_main():
 
     add_mcop,job_finished_time = ga.decoding.insertDecode(bestChromosome['OS'], bestChromosome['MS'])
 
-    bestChromosome['machine_operation'] = add_mcop
+    # bestChromosome['machine_operation'] = add_mcop
 
     data = ga.decoding.translateDecode2Gantt(add_mcop)
     utils.chart.drawChart(data, recordForm)
     serial_number = paths.num_exp.zfill(2)
     if testing.recordWrite:
+        bestChromosome['OS'] = bestChromosome['OS'].tolist()
+        bestChromosome['MS'] = bestChromosome['MS'].tolist()
         ga.keep.record2json(bestChromosome, paths.result_insert_path + f'recordbest/bestchromosome/insert_bestchromosome_{serial_number}.json')
         ga.keep.record2json(bestChromosome, paths.result_insert_path + f'recordbest/bestrecord/insert_bestrecord_{serial_number}.json')
 
@@ -141,7 +146,7 @@ def insert_main():
 
 
 if __name__ == '__main__':
-    if len(sys.argv) != 3:
+    if len(sys.argv) != 4:
         print("plz enter experiment number!!!")
     else:
         # argv : 實驗編號(exp1)、模式(1 or 2)、實驗第幾次的編號(1)

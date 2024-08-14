@@ -1,7 +1,7 @@
 # population 大小
-popSize = 20
+popSize = 10
 # 迭代次數
-maxGen = 100
+maxGen = 10
 
 # 菁英選擇率
 pe = 0.01

@@ -22,17 +22,17 @@ def readRecord(filename):
         if data_paths.mode == 1:
             with open(data_paths.record_ori_path + name, 'r', newline='') as file:
                 dt = json.load(file)
-                del dt['OS'], dt['MS'], dt['machine_operation']
+                del dt['OS'], dt['MS']
                 record.append(dt)
         elif data_paths.mode == 2:
             with open(data_paths.record_ins_path + name, 'r', newline='') as file:
                 dt = json.load(file)
-                del dt['OS'], dt['MS'], dt['machine_operation']
+                del dt['OS'], dt['MS']
                 record.append(dt)
         elif data_paths.mode == 3:
             with open(data_paths.record_thebest_path + name, 'r', newline='') as file:
                 dt = json.load(file)
-                del dt['OS'], dt['MS'], dt['machine_operation']
+                del dt['OS'], dt['MS']
                 record.append(dt)
         else:
             print('[ERROR] error mode number! mode num is 1 to 3!')

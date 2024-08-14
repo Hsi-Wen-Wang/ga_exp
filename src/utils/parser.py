@@ -1,7 +1,7 @@
 import csv
 import json
 from setting import parameters, globals, paths
-
+import numpy as np
 ###########################################################################################
 ##################################一般GA交叉，螺絲加工廠#####################################
 ###########################################################################################
@@ -24,7 +24,7 @@ def parser(path):
     jobDict = {}
     mcDict = {}
     amount = []
-    theore_value = [0 for _ in range(len(orderRow))]
+    theore_value = np.zeros(len(orderRow), dtype=int)
     countStart = 0
     countEnd = 0
 

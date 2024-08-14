@@ -2,6 +2,7 @@ from src import *
 import json
 import csv
 from setting import parameters, paths
+import numpy as np
 '''
 一般排程初始化:
 load 工法處理時間
@@ -95,17 +96,13 @@ def loadOrderWeight():
     global weight
 
     with open(paths.data_origin_path + 'orderWeight.csv') as f:
-        weight = []
         value_list = list(csv.reader(f))
-        for value in value_list[0]:
-            weight.append(float(value))
+        weight = np.array(value_list, dtype=float).flatten()
     if parameters.insertMode:
         with open(paths.data_insert_path + 'insert_orderWeight.csv') as file:
-            weight = []
             value_list = list(csv.reader(file))
             if value_list:
-                for value in value_list[0]:
-                    weight.append(float(value))
+                weight = np.array(value_list, dtype=float)
             else:
                 return
     return

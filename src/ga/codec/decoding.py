@@ -1,7 +1,8 @@
-from setting import parameters,globals
-from setting import globals
 import sys
 import copy
+import numpy as np
+from setting import parameters,globals
+from setting import globals
 ###########################################################################################
 ##################################一般GA解碼，螺絲加工廠#####################################
 ###########################################################################################
@@ -10,17 +11,27 @@ import copy
 current opList ex. [1 2 1 4 3]
 訂單1進行到op1, 訂單2進行到op2, 訂單3進行到op1...
 '''
-def generateCurrentOpList():
-    current_opList = []
-    for job in globals.order_content['jobs'].keys():
-        if globals.order_content['jobs'][job]['operators'] != 0:
-            for op in globals.order_content['jobs'][job]['operator'].keys():
-                current_opList.append(int(op[2:]))
-                break
-        else:
-            current_opList.append(0)
-            continue
-    return current_opList
+def generateCurrentOpList(replace=False):
+    if replace:
+        current_opList = np.zeros(globals.order_content['totalJobs'], dtype=tuple)
+        for i, job in enumerate(globals.order_content['jobs'].keys()):
+            if globals.order_content['jobs'][job]['operators'] != 0:
+                for op in globals.order_content['jobs'][job]['operator'].keys():
+                    current_opList[i] = int(op[2:])
+                    break
+            else:
+                continue
+        return current_opList
+    else:
+        current_opList = np.zeros(globals.order_content['totalJobs'], dtype=int)
+        for i, job in enumerate(globals.order_content['jobs'].keys()):
+            if globals.order_content['jobs'][job]['operators'] != 0:
+                for op in globals.order_content['jobs'][job]['operator'].keys():
+                    current_opList[i] = int(op[2:])
+                    break
+            else:
+                continue
+        return current_opList
 #-----------------------------------------------------------------------------------------#
 '''
 processing_seq格式:
@@ -60,17 +71,8 @@ op:(job number, operation number)、 machine:第幾台
             tuple                         int
 '''
 def getProcessingTime(op, machine):
-    # print(globals.order_content)
 
-    # print('=======')
-    # print(machine)
-    # print('++++++')
-    # print(op)
-    # print('-----')
     for info in globals.machine_config[f'Machine{machine}']['setting']:
-        # print(globals.order_content['jobs'][f'job{op[0]}']['operator'][f'op{op[1]}'])
-        # print(info)
-        # print('-=-=-=-=-=-=-=-')
         if globals.order_content['jobs'][f'job{op[0]}']['operator'][f'op{op[1]}'] in info.values():
             prcTime = info['time']
             return prcTime
@@ -85,16 +87,12 @@ def getProcessingTime(op, machine):
 '''
 def translateDecode2Gantt(machine_operation):
     data = {}
-    # print('1111111')
-    # print(machine_operation)
     for idx, machine in enumerate(machine_operation):
         machine_name = "Machine-{}".format(idx + 1)
         operations = []
         for operation in machine:
-            # print(operation[0])
             operations.append([operation[1], operation[1]+operation[2], operation[0]])
         data[machine_name] = operations
-    # print(data)
     return data
 
 #-----------------------------------------------------------------------------------------#
@@ -104,26 +102,29 @@ def translateDecode2Gantt(machine_operation):
 [current op, current mc]
 '''
 def resetJobSetting(replace=False):
+    job_current_time = np.zeros(globals.order_content['totalJobs'], dtype=int)
     if parameters.insertMode:
-        job_current_time = [0 for _ in range(globals.order_content['totalJobs'])]
-        current_operation = generateCurrentOpList()
         for job in globals.ongoingJob:
             jobnum, opnum = job[0].split(',')
             job_current_time[int(jobnum[1:])-1] = job[2]
+
         if replace:
+            current_operation = generateCurrentOpList(True)
             for i, crop in enumerate(current_operation):
-                current_operation[i] = [crop,0]
+                current_operation[i] = (crop,0)
             return current_operation, job_current_time
         else:
+            current_operation = generateCurrentOpList()
             return current_operation, job_current_time
     else:
-        job_current_time = [0 for _ in range(globals.order_content['totalJobs'])]
-        current_operation = generateCurrentOpList()
+
         if replace:
+            current_operation = generateCurrentOpList(True)
             for i, crop in enumerate(current_operation):
-                current_operation[i] = [crop,0]
+                current_operation[i] = (crop,0)
             return current_operation, job_current_time
         else:
+            current_operation = generateCurrentOpList()
             return current_operation, job_current_time
 '''
 初始化 machine operation, machine current time, current operation
@@ -131,27 +132,31 @@ def resetJobSetting(replace=False):
 [current machine time, current job]
 '''
 def resetMachineSetting(temp_mcop=0, current_operation=0, replace=False):
-    machine_operation = [[] for _ in range(len(globals.machine_config.keys()))]
+    num_machine = len(globals.machine_config.keys())
+    machine_operation = [[] for _ in range(num_machine)]
     if not replace:
-        machine_current_time = [globals.machine_config[x]['current_time'] for x in globals.machine_config.keys()]
+        machine_current_time = np.zeros(num_machine, dtype=int)
+        for i, name in enumerate(globals.machine_config.keys()):
+            machine_current_time[i] = globals.machine_config[name]['current_time']
         return machine_operation, machine_current_time
     
+    machine_current_time = np.zeros(num_machine, dtype=tuple)
+    for i, name in enumerate(globals.machine_config.keys()):
+        machine_current_time[i] = (globals.machine_config[name]['current_time'], 0)
     if parameters.insertMode:
-        machine_current_time = [[globals.machine_config[x]['current_time'], 0] for x in globals.machine_config.keys()]
         for job in globals.ongoingJob:
             machine_current_time[job[1]-1][0] = job[2]
             machine_current_time[job[1]-1][1] = job[0]
-    else:    
-        machine_current_time = [[globals.machine_config[x]['current_time'], 0] for x in globals.machine_config.keys()]
+
     for i, job in enumerate(temp_mcop):
         if job:
             if not machine_current_time[i][1] == 0:
                 continue
-            machine_current_time[i][1] = job[0][0]
+            machine_current_time[i] = (machine_current_time[i][0],job[0][0])
             for op in job:
                 current_jobnum, current_opnum = op[0].split(',')
                 if current_opnum == '1':
-                    current_operation[int(current_jobnum[1:])-1][1] = i
+                    current_operation[int(current_jobnum[1:])-1] = (current_operation[int(current_jobnum[1:])-1][0], i)
     return machine_operation, machine_current_time, current_operation
 #-----------------------------------------------------------------------------------------#
 '''
@@ -211,7 +216,7 @@ def informationSetting(new_data, start, duration, i, job_index):
     global add_job_current_time
 
     add_machine_operation[i].append(new_data)
-    add_machine_current_time[i][0] = start + duration
+    add_machine_current_time[i] = ((start + duration), add_machine_current_time[i][1])
     add_job_current_time[job_index] = start + duration
 
     return
@@ -349,16 +354,14 @@ def addToolReplaceTime(ori_machine_operation):
                             uppdateSetting(new_start_time, start, new_data, ori_data, i, job_index)
 
 
-                    add_machine_current_time[i][1] = op[0]
-                    add_current_operation[job_index][0]+=1
-                    add_current_operation[job_index][1] = i
+                    add_machine_current_time[i] = (add_machine_current_time[i][0],op[0])
+                    add_current_operation[job_index] = (add_current_operation[job_index][0]+1, i)
                     num+=1
 
                 del temp_mcop[i][:num]
                 
         if not any(temp_mcop):
             execution = False
-    # print(add_machine_operation)
 
     return add_machine_operation, add_job_current_time
 #-----------------------------------------------------------------------------------------#
