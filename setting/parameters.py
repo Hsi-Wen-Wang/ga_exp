@@ -1,7 +1,7 @@
 # population 大小
-popSize = 20
+popSize = 200
 # 迭代次數
-maxGen = 100
+maxGen = 1000
 
 # 菁英選擇率
 pe = 0.01
@@ -31,6 +31,6 @@ job_replace_time = 1
 # 收斂
 convergence = False
 # 收斂誤差
-convergence_rate = 0.00000001
+convergence_rate = 0.0000000000000001
 # 終止條件，連續多少代?
 convergence_num = 150
