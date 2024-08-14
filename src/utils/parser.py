@@ -1,7 +1,7 @@
 import csv
 import json
 from setting import parameters, globals, paths
-
+import numpy as np
 ###########################################################################################
 ##################################一般GA交叉，螺絲加工廠#####################################
 ###########################################################################################
@@ -24,7 +24,7 @@ def parser(path):
     jobDict = {}
     mcDict = {}
     amount = []
-    theore_value = [0 for _ in range(len(orderRow))]
+    theore_value = np.zeros(len(orderRow), dtype=int)
     countStart = 0
     countEnd = 0
 
@@ -240,7 +240,7 @@ def insertParser(insert_path):
         globals.order_content['jobs'][f'job{ori_orderNum+1}'] = jobTempDict
         globals.order_content['msTable'].update(msTempDict)
         ori_orderNum+=1
-    globals.theoretical_value += theore_value
+    globals.theoretical_value = np.hstack((globals.theoretical_value, theore_value))
     globals.order_content['totalOperators'] += amount
     order.close()
 

@@ -1,6 +1,7 @@
 import random
 from setting import parameters, globals,testing
 import sys
+import numpy as np
 ###########################################################################################
 ##################################一般GA編碼，螺絲加工廠#####################################
 ###########################################################################################
@@ -9,14 +10,14 @@ import sys
 訂單處理順序
 '''
 def generateOS():
-    if testing.randomswitch:
-        random.seed(testing.randomseed)
-    OS = []
     for i, jobKey in enumerate(globals.order_content['jobs'].keys()):
-        osTemp = [i+1]
-        osTemp *= globals.order_content['jobs'][jobKey]['operators']
-        OS+=osTemp
-    random.shuffle(OS)
+        num = globals.order_content['jobs'][jobKey]['operators']
+        if i == 0:
+            OS = np.ones(num, dtype=int)
+            continue
+        osTemp = np.full(num, i+1, dtype=int)
+        OS = np.hstack([OS,osTemp])  
+    np.random.shuffle(OS)
     return OS
 #-----------------------------------------------------------------------------------------#
 '''
@@ -33,7 +34,7 @@ def generateMS():
         jobInfo.append(globals.order_content['jobs'][f'job{job[0]}']['type'])
         jobInfo.append(globals.order_content['jobs'][f'job{job[0]}']['operator'][f'op{job[1]}'])
         MS.append(randMachine(jobInfo))
-
+    MS = np.array(MS, dtype=int)
     return MS
 
 #-----------------------------------------------------------------------------------------#
@@ -66,9 +67,8 @@ def randMachine(jobInfo):
 生成染色體(chromosome)直到族群(population)總數
 '''
 def initializePopulation():
-    population = []
+    population = np.zeros((parameters.popSize, 2, globals.order_content['totalOperators']), dtype=int)
     for i in range(parameters.popSize):
-        OS = generateOS()
-        MS = generateMS()
-        population.append((OS, MS))
+        population[i][0] = generateOS()
+        population[i][1] = generateMS()
     return population
