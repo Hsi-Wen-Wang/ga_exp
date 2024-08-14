@@ -240,7 +240,7 @@ def insertParser(insert_path):
         globals.order_content['jobs'][f'job{ori_orderNum+1}'] = jobTempDict
         globals.order_content['msTable'].update(msTempDict)
         ori_orderNum+=1
-    globals.theoretical_value += theore_value
+    globals.theoretical_value = np.hstack((globals.theoretical_value, theore_value))
     globals.order_content['totalOperators'] += amount
     order.close()
 

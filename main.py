@@ -60,7 +60,7 @@ def main():
 
     add_mcop,job_finished_time = ga.decoding.decode(bestChromosome['OS'], bestChromosome['MS'])
 
-    # bestChromosome['machine_operation'] = add_mcop
+    bestChromosome['machine_operation'] = add_mcop
     data = ga.decoding.translateDecode2Gantt(add_mcop)
 
     utils.chart.drawChart(data, recordForm)
@@ -93,7 +93,7 @@ def insert_main():
             ga.keep.recordingProcess(recordForm, bestChromosome)
             
             convergence_record = bestChromosome['fitness']
-            recordForm
+            # recordForm
 
         else:
             ga.keep.keepBest(population, fitness, bestChromosome)
@@ -109,7 +109,7 @@ def insert_main():
 
         crossPop = ga.crossover.crossover(parentPop)
 
-        population = selectPop + crossPop
+        population = np.vstack((selectPop , crossPop), dtype=int)
 
         population = ga.mutation.mutation(population)
 
@@ -123,15 +123,13 @@ def insert_main():
         print(f'iteration : {gen}, best fitness : {fit}, minimum work time : {timefit}, maximum profit : {profit}, minimum mcCost : {mcfit}')
         gen += 1
 
-        gen += 1
-
     fitness = ga.fitness.fitnessCalculate(population)
     ga.keep.keepBest(population, fitness, bestChromosome)
     ga.keep.recordingProcess(recordForm, bestChromosome)
 
     add_mcop,job_finished_time = ga.decoding.insertDecode(bestChromosome['OS'], bestChromosome['MS'])
 
-    # bestChromosome['machine_operation'] = add_mcop
+    bestChromosome['machine_operation'] = add_mcop
 
     data = ga.decoding.translateDecode2Gantt(add_mcop)
     utils.chart.drawChart(data, recordForm)

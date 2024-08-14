@@ -1,2 +1,2 @@
-@REM python .\data_generate.py exp1 5 3
-python .\generate_scripts.py 1 1
+python .\data_generate.py exp2 100 5
+python .\generate_scripts.py 2 10

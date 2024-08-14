@@ -102,7 +102,8 @@ def loadOrderWeight():
         with open(paths.data_insert_path + 'insert_orderWeight.csv') as file:
             value_list = list(csv.reader(file))
             if value_list:
-                weight = np.array(value_list, dtype=float)
+                weight2 = np.array(value_list, dtype=float).flatten()
+                weight = np.hstack((weight,weight2))
             else:
                 return
     return
